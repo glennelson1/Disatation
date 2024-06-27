@@ -34,16 +34,41 @@ void ALevelGen::DeleteGrid()
 	m_emptySect= 0, m_pipeSect =0, m_StairsSect =0, m_SingleBlockSect =0,m_singlePlat = 0, m_SmallPlatSect = 0;
 	m_LargePlatSect = 0;
 	m_PreviousSect = 0;
-
+	for (AActor* actor : EnemyArray)
+	{
+		actor->Destroy();
+	}
+	Cellref.Empty();
+	EnemyArray.Empty();
 	LevelSeq.Empty();
 }
 void ALevelGen::SpawnGrid()
 {
+	m_Start = true;
+	m_LastWasEnemy = false;
 	DeleteGrid();
 	m_loc = 0;
-	
+	Playstyle =1;
 	if (RandomGen)
 	{
+		switch (Playstyle)
+		{
+		case 0:
+			Cell = CellClasses;
+			break;
+		case 1:
+			Cell = ExplorersGen;
+			break;
+		case 2:
+			Cell = SocializersGen;
+			break;
+		case 3:
+			Cell = KillersGen;
+			break;
+		default:
+			Cell = AchieversGen;
+			break;
+		}
 		for (int i = 0; i <= 20; i++)
 		{
 			  // Call DetermineProbability to adjust the spawn probabilities based on the previous section
@@ -95,10 +120,10 @@ void ALevelGen::SpawnGrid()
                 UE_LOG(LogTemp, Warning, TEXT("Invalid section selection"));
                 break;
             }
+			
 			m_loc += 10; // Assuming each section advances 'm_loc' by 10 units
 			LevelSeq += FString::Printf(TEXT("%d,"), SelectedSection);
 			m_PreviousSect = SelectedSection;
-			
         }
 	}
 	else
@@ -151,15 +176,17 @@ void ALevelGen::SpawnEmptySection()
 	{
 		FVector SpawnLocation = FVector(m_loc  * 100, 0,100); 
 		AActor* NewCell;
-		NewCell = GetWorld()->SpawnActor<AActor>(CellClasses[6], SpawnLocation, FRotator::ZeroRotator);
+		NewCell = GetWorld()->SpawnActor<AActor>(Cell[6], SpawnLocation, FRotator::ZeroRotator);
 		Cellref.Add(NewCell);
+		//SpawnEnitiy(SpawnLocation, 200);
 	}
 	else
 	{
 		FVector SpawnLocation = FVector(m_loc * 100, 0,100); 
 		AActor* NewCell;
-		NewCell = GetWorld()->SpawnActor<AActor>(CellClasses[7], SpawnLocation, FRotator::ZeroRotator);
+		NewCell = GetWorld()->SpawnActor<AActor>(Cell[7], SpawnLocation, FRotator::ZeroRotator);
 		Cellref.Add(NewCell);
+		//SpawnEnitiy(SpawnLocation, 200);
 	}
 
 	
@@ -173,10 +200,10 @@ void ALevelGen::SpawnPipeSection()
 	FVector SpawnLocation2 = FVector((m_loc + 9) * 100, 0, 100);
 	AActor* NewCell;
 		
-	NewCell = GetWorld()->SpawnActor<AActor>(CellClasses[1], SpawnLocation, FRotator::ZeroRotator);
+	NewCell = GetWorld()->SpawnActor<AActor>(Cell[1], SpawnLocation, FRotator::ZeroRotator);
 	Cellref.Add(NewCell);
 		
-	NewCell = GetWorld()->SpawnActor<AActor>(CellClasses[2], SpawnLocation2, FRotator::ZeroRotator);
+	NewCell = GetWorld()->SpawnActor<AActor>(Cell[2], SpawnLocation2, FRotator::ZeroRotator);
 	Cellref.Add(NewCell);
 	int32 randint = FMath::RandRange(0, 100);
 	if(randint >=80)
@@ -192,7 +219,7 @@ void ALevelGen::SpawnBlockSection(int BlockType, int length, int zAxis)
 	SpawnEmptySection();
 	FVector SpawnLocation = FVector((m_loc + length) * 100, 0,zAxis); 
 	AActor* NewCell;
-	NewCell = GetWorld()->SpawnActor<AActor>(CellClasses[BlockType], SpawnLocation, FRotator::ZeroRotator);
+	NewCell = GetWorld()->SpawnActor<AActor>(Cell[BlockType], SpawnLocation, FRotator::ZeroRotator);
 	Cellref.Add(NewCell);
 }
 
@@ -203,7 +230,7 @@ void ALevelGen::SpawnPlatform(int BlockType, int length)
 	{
 		FVector SpawnLocation = FVector((X + length) * 100, 0,400); 
 		AActor* NewCell;
-		NewCell = GetWorld()->SpawnActor<AActor>(CellClasses[BlockType], SpawnLocation, FRotator::ZeroRotator);
+		NewCell = GetWorld()->SpawnActor<AActor>(Cell[BlockType], SpawnLocation, FRotator::ZeroRotator);
 		Cellref.Add(NewCell);
 	}
 	
@@ -217,7 +244,7 @@ void ALevelGen::SpawnTopPlatform(int length)
 	{
 		FVector SpawnLocation = FVector((X + 10) * 100, 0,800); 
 		AActor* NewCell;
-		NewCell = GetWorld()->SpawnActor<AActor>(CellClasses[4], SpawnLocation, FRotator::ZeroRotator);
+		NewCell = GetWorld()->SpawnActor<AActor>(Cell[4], SpawnLocation, FRotator::ZeroRotator);
 		Cellref.Add(NewCell);
 	}
 }
@@ -226,7 +253,7 @@ void ALevelGen::SpawnUnder()
 {
 	FVector SpawnLocation = FVector(m_loc * 100, 0,-800); 
 	AActor* NewCell;
-	NewCell = GetWorld()->SpawnActor<AActor>(CellClasses[8], SpawnLocation, FRotator::ZeroRotator);
+	NewCell = GetWorld()->SpawnActor<AActor>(Cell[8], SpawnLocation, FRotator::ZeroRotator);
 	Cellref.Add(NewCell);
 }
 
@@ -385,6 +412,49 @@ void ALevelGen::NormalizeProbabilities(TMap<int32, float>& Probabilities)
 	}
 	
 }
+
+void ALevelGen::SpawnEnitiy(FVector CellLocation, int base)
+{
+	CellLocation += FVector3d(0, 0, 100);
+	for (int i = 0; i <= 10; i++)
+	{
+		int32 Randomint= FMath::RandRange(0, 100);
+		CellLocation += FVector3d((i*100), 0, 0);
+		if(Randomint <= 30)
+		{
+			int32 RandomInt = FMath::RandRange(0, 100);
+			int32 RandEnemyType = FMath::RandRange(0, 10);
+			int enemyType;
+			if(RandEnemyType <= 7) enemyType = 0;
+			else enemyType = 1;
+	
+			if(RandomInt <= 20)
+			{
+				AActor* NewCell;
+				NewCell = GetWorld()->SpawnActor<AActor>(Enemies[enemyType], CellLocation, FRotator::ZeroRotator);
+				EnemyArray.Add(NewCell);
+				EnemyInSection.Add(NewCell);
+				m_LastWasEnemy = true;
+			}
+		}
+		else
+		{
+			int32 RandomInt= FMath::RandRange(0, 100);
+			if(RandomInt <= 30)
+			{
+				AActor* NewCell;
+				NewCell = GetWorld()->SpawnActor<AActor>(Collectables[0], CellLocation, FRotator::ZeroRotator);
+				EnemyArray.Add(NewCell);
+				EnemyInSection.Add(NewCell);
+			
+			}
+		}
+	}
+	
+}
+
+
+
 // Called every frame
 void ALevelGen::Tick(float DeltaTime)
 {
