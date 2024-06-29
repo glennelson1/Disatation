@@ -29,13 +29,22 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Grid")
 	TArray<TSubclassOf<AActor>> CellClasses;
 
+
+
+	TMap<int32, float> AchieversProbabilities;
+	TMap<int32, float> ExplorersProbabilities;
+	TMap<int32, float> SocializersProbabilities;
+	TMap<int32, float> KillersProbabilities;
+	TMap<int32, float> CurrentProbabilities;
+
+	
 	int Playstyle;
 	TArray<TSubclassOf<AActor>> Cell;
 	
 	int m_loc;
 	int m_PreviousSect;
 	TMap<int32, float> SectionProbabilities;
-	
+	TMap<int32, float> PlaystyleWeights;
 	UFUNCTION(BlueprintCallable)
 	void DeleteGrid();
 	TArray<AActor*> Cellref;
@@ -47,6 +56,9 @@ protected:
 	int32  SelectSectionBasedOnProbability(const TMap<int32, float>& Probabilities);
 	void DetermineProbability();
 	void NormalizeProbabilities(TMap<int32, float>& Probabilities);
+
+	TArray<TSubclassOf<AActor>> GetCellArrayForPlaystyle(int32 Playstyle);
+	int32 SelectPlaystyleBasedOnWeight(const TMap<int32, float>& Weights);
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

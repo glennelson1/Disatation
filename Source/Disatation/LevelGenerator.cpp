@@ -15,6 +15,24 @@ ALevelGenerator::ALevelGenerator()
 	SectionProbabilities.Add(4, 10.0f); // One Platform
 	SectionProbabilities.Add(5, 0.0f); // Small Platforms
 	SectionProbabilities.Add(6, 0.0f); // Large Platforms
+
+	SectionProbabilities = {
+		{0, 10.0f}, // Empty
+		{1, 10.0f}, // Pipes
+		{2, 10.0f}, // Stairs
+		{3, 10.0f}, // Single Block
+		{4, 10.0f}, // One Platform
+		{5, 0.0f},  // Small Platforms
+		{6, 0.0f}   // Large Platforms
+	};
+
+	// Initialize playstyle weights
+	PlaystyleWeights = {
+		{0, 25.0f}, // Achievers
+		{1, 25.0f}, // Explorers
+		{2, 25.0f}, // Socializers
+		{3, 25.0f}  // Killers
+	};
 }
 
 // Called when the game starts or when spawned
@@ -40,7 +58,7 @@ void ALevelGenerator::DeleteGrid()
 void ALevelGenerator::SpawnGrid()
 {
 	DeleteGrid();
-	Playstyle = 0;
+	/*Playstyle = 0;
 	switch (Playstyle)
 	{
 	case 0:
@@ -58,13 +76,20 @@ void ALevelGenerator::SpawnGrid()
 	default:
 		Cell = CellClasses;
 		break;
-	}
+	}*/
 	for (int i = 0; i <= 20; i++)
 	{
+		/*int32 SelectedSection = SelectSectionBasedOnProbability(SectionProbabilities);
+		SpawnSection(SelectedSection);
+		m_loc += 10;
+		m_PreviousSect = SelectedSection;*/
+		int32 SelectedPlaystyle = SelectPlaystyleBasedOnWeight(PlaystyleWeights);
+		Cell = GetCellArrayForPlaystyle(SelectedPlaystyle);
+
+		DetermineProbability(); // Ensure probabilities are adjusted before each selection
 		int32 SelectedSection = SelectSectionBasedOnProbability(SectionProbabilities);
 		SpawnSection(SelectedSection);
 		m_loc += 10;
-		m_PreviousSect = SelectedSection;
 	}
 	
 }
@@ -187,6 +212,23 @@ void ALevelGenerator::NormalizeProbabilities(TMap<int32, float>& Probabilities)
 	
 }
 
+TArray<TSubclassOf<AActor>> ALevelGenerator::GetCellArrayForPlaystyle(int32 style)
+{
+	switch (style)
+	{
+	case 0:
+		return AchieversGen;
+	case 1:
+		return ExplorersGen;
+	case 2:
+		return SocializersGen;
+	case 3:
+		return KillersGen;
+	default:
+		return CellClasses;
+	}
+}
+
 void ALevelGenerator::SpawnSection(int SectNum)
 {
 	FVector SpawnLocation = FVector(m_loc  * 100, 0,100); 
@@ -194,6 +236,29 @@ void ALevelGenerator::SpawnSection(int SectNum)
 	NewCell = GetWorld()->SpawnActor<AActor>(Cell[SectNum], SpawnLocation, FRotator::ZeroRotator);
 	Cellref.Add(NewCell);
 }
+int32 ALevelGenerator::SelectPlaystyleBasedOnWeight(const TMap<int32, float>& Weights)
+{
+	float TotalWeight = 0.0f;
+	for (const auto& Elem : Weights)
+	{
+		TotalWeight += Elem.Value;
+	}
+
+	float RandomPoint = FMath::FRandRange(0.0f, TotalWeight);
+
+	float CumulativeWeight = 0.0f;
+	for (const auto& Elem : Weights)
+	{
+		CumulativeWeight += Elem.Value;
+		if (RandomPoint <= CumulativeWeight)
+		{
+			return Elem.Key;
+		}
+	}
+
+	return 0; // Default playstyle if something goes wrong
+}
+
 
 // Called every frame
 void ALevelGenerator::Tick(float DeltaTime)
