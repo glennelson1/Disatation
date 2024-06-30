@@ -57,7 +57,7 @@ protected:
 	void DetermineProbability();
 	void NormalizeProbabilities(TMap<int32, float>& Probabilities);
 
-	TArray<TSubclassOf<AActor>> GetCellArrayForPlaystyle(int32 Playstyle);
+	TArray<TSubclassOf<AActor>> GetCellArrayForPlaystyle(int32 style);
 	int32 SelectPlaystyleBasedOnWeight(const TMap<int32, float>& Weights);
 public:	
 	// Called every frame
