@@ -26,7 +26,11 @@ protected:
 	TArray<TSubclassOf<AActor>> KillersGen;
 	UPROPERTY(EditAnywhere, Category = "Grid")
 	TArray<TSubclassOf<AActor>> CellClasses;
+	
 
+	TMap<int32, float> GetPlaystyleWeightsFromGrid(const FVector2D& Point);
+
+	
 
 
 	TMap<int32, float> AchieversProbabilities;
@@ -48,7 +52,10 @@ protected:
 	TArray<AActor*> Cellref;
 	UFUNCTION(BlueprintCallable)
 	void SpawnGrid();
+	
+	
 
+	
 	void SpawnSection(int SectNum);
 
 	int32  SelectSectionBasedOnProbability(const TMap<int32, float>& Probabilities);
@@ -59,4 +66,13 @@ protected:
 	int32 SelectPlaystyleBasedOnWeight(const TMap<int32, float>& Weights);
 
 	virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;
+
+
+	
+	
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Vector")
+	FVector2D ReceivedVector;
+
+	
 };

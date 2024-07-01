@@ -5,6 +5,7 @@
 
 ULevelGenTool::ULevelGenTool()
 {
+	
 	SectionProbabilities.Add(0, 10.0f); 
 	SectionProbabilities.Add(1, 10.0f); 
 	SectionProbabilities.Add(2, 10.0f); 
@@ -32,8 +33,49 @@ ULevelGenTool::ULevelGenTool()
 	};
 }
 
+
 ULevelGenTool::~ULevelGenTool()
 {
+	
+}
+
+TMap<int32, float> ULevelGenTool::GetPlaystyleWeightsFromGrid(const FVector2D& Point)
+{
+	TMap<int32, float> Weights;
+
+	// Define corner points (as given in the image)
+	FVector2D TopLeft(-400, -200);
+	FVector2D TopRight(400, -200);
+	FVector2D BottomLeft(-400, 400);
+	FVector2D BottomRight(400, 400);
+
+	// Calculate distances to each corner
+	float DistToTopLeft = FVector2D::Distance(Point, TopLeft);
+	float DistToTopRight = FVector2D::Distance(Point, TopRight);
+	float DistToBottomLeft = FVector2D::Distance(Point, BottomLeft);
+	float DistToBottomRight = FVector2D::Distance(Point, BottomRight);
+
+	// Calculate total distance (for normalization)
+	float TotalDistance = DistToTopLeft + DistToTopRight + DistToBottomLeft + DistToBottomRight;
+
+	// Assign weights inversely proportional to distance
+	Weights.Add(0, (1.0f - (DistToTopLeft / TotalDistance)) * 100.0f); // Playstyle 2
+	Weights.Add(1, (1.0f - (DistToTopRight / TotalDistance)) * 100.0f); // Playstyle 3
+	Weights.Add(2, (1.0f - (DistToBottomLeft / TotalDistance)) * 100.0f); // Playstyle 1
+	Weights.Add(3, (1.0f - (DistToBottomRight / TotalDistance)) * 100.0f); // Playstyle 4
+
+	// Normalize the weights to sum to 100
+	float TotalWeight = 0.0f;
+	for (const auto& Elem : Weights)
+	{
+		TotalWeight += Elem.Value;
+	}
+	for (auto& Elem : Weights)
+	{
+		Elem.Value = (Elem.Value / TotalWeight) * 100.0f;
+	}
+
+	return Weights;
 }
 
 void ULevelGenTool::DeleteGrid()
@@ -49,17 +91,19 @@ void ULevelGenTool::DeleteGrid()
 
 void ULevelGenTool::SpawnGrid()
 {
+	
 	DeleteGrid();
+	// Use the GraphPosition to adjust the weights
+	PlaystyleWeights = GetPlaystyleWeightsFromGrid(ReceivedVector);
+
 	for (int i = 0; i <= 20; i++)
 	{
-		/*int32 SelectedSection = SelectSectionBasedOnProbability(SectionProbabilities);
-		SpawnSection(SelectedSection);
-		m_loc += 10;
-		m_PreviousSect = SelectedSection;*/
+		// Select a playstyle based on the updated weights
 		int32 SelectedPlaystyle = SelectPlaystyleBasedOnWeight(PlaystyleWeights);
 		Cell = GetCellArrayForPlaystyle(SelectedPlaystyle);
 
-		DetermineProbability(); 
+		// Ensure probabilities are adjusted before each selection
+		DetermineProbability();
 		int32 SelectedSection = SelectSectionBasedOnProbability(SectionProbabilities);
 		SpawnSection(SelectedSection);
 		m_loc += 10;
@@ -241,3 +285,19 @@ bool ULevelGenTool::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEve
 	
 	return Super::NativeOnDrop(InGeometry, InDragDropEvent, InOperation);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
