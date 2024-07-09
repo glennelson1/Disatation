@@ -6,14 +6,6 @@
 ULevelGenTool::ULevelGenTool()
 {
 	
-	SectionProbabilities.Add(0, 10.0f); 
-	SectionProbabilities.Add(1, 10.0f); 
-	SectionProbabilities.Add(2, 10.0f); 
-	SectionProbabilities.Add(3, 10.0f);
-	SectionProbabilities.Add(4, 10.0f); 
-	SectionProbabilities.Add(5, 0.0f); 
-	SectionProbabilities.Add(6, 0.0f); 
-
 	SectionProbabilities = {
 		{0, 10.0f}, 
 		{1, 10.0f},
@@ -26,11 +18,10 @@ ULevelGenTool::ULevelGenTool()
 
 	// Initialize playstyle weights
 	PlaystyleWeights = {
-		{0, 25.0f}, // Achievers
-		{1, 25.0f}, // Explorers
-		{2, 25.0f}, // Socializers
-		{3, 25.0f}  // Killers
-	};
+		{0, 0.0f}, 
+		{1, 0.0f}, 
+		{2, 0.0f}, 
+		{3, 0.0f} };
 }
 
 
@@ -43,39 +34,57 @@ TMap<int32, float> ULevelGenTool::GetPlaystyleWeightsFromGrid(const FVector2D& P
 {
 	TMap<int32, float> Weights;
 
-	// Define corner points (as given in the image)
-	FVector2D TopLeft(-400, -200);
-	FVector2D TopRight(400, -200);
-	FVector2D BottomLeft(-400, 400);
-	FVector2D BottomRight(400, 400);
+    // Normalize coordinates
+    float Nx = (Point.X - 120.0f) / 406.0f;
+    float Ny = (Point.Y - 25.0f) / 392.0f;
 
-	// Calculate distances to each corner
-	float DistToTopLeft = FVector2D::Distance(Point, TopLeft);
-	float DistToTopRight = FVector2D::Distance(Point, TopRight);
-	float DistToBottomLeft = FVector2D::Distance(Point, BottomLeft);
-	float DistToBottomRight = FVector2D::Distance(Point, BottomRight);
+    // Define corner points in normalized space
+    FVector2D TopLeft(0, 0);
+    FVector2D TopRight(1, 0);
+    FVector2D BottomLeft(0, 1);
+    FVector2D BottomRight(1, 1);
 
-	// Calculate total distance (for normalization)
-	float TotalDistance = DistToTopLeft + DistToTopRight + DistToBottomLeft + DistToBottomRight;
+    // Calculate distances to each corner
+    float DistToTopLeft = FVector2D::Distance(FVector2D(Nx, Ny), TopLeft);
+    float DistToTopRight = FVector2D::Distance(FVector2D(Nx, Ny), TopRight);
+    float DistToBottomLeft = FVector2D::Distance(FVector2D(Nx, Ny), BottomLeft);
+    float DistToBottomRight = FVector2D::Distance(FVector2D(Nx, Ny), BottomRight);
 
-	// Assign weights inversely proportional to distance
-	Weights.Add(0, (1.0f - (DistToTopLeft / TotalDistance)) * 100.0f); // Playstyle 2
-	Weights.Add(1, (1.0f - (DistToTopRight / TotalDistance)) * 100.0f); // Playstyle 3
-	Weights.Add(2, (1.0f - (DistToBottomLeft / TotalDistance)) * 100.0f); // Playstyle 1
-	Weights.Add(3, (1.0f - (DistToBottomRight / TotalDistance)) * 100.0f); // Playstyle 4
+    // Amplify the influence of distances
+    float Power = 10.0f;  // Further increased power for steeper change
+    DistToTopLeft = FMath::Pow(DistToTopLeft, Power);
+    DistToTopRight = FMath::Pow(DistToTopRight, Power);
+    DistToBottomLeft = FMath::Pow(DistToBottomLeft, Power);
+    DistToBottomRight = FMath::Pow(DistToBottomRight, Power);
 
-	// Normalize the weights to sum to 100
-	float TotalWeight = 0.0f;
-	for (const auto& Elem : Weights)
-	{
-		TotalWeight += Elem.Value;
-	}
-	for (auto& Elem : Weights)
-	{
-		Elem.Value = (Elem.Value / TotalWeight) * 100.0f;
-	}
+    // Calculate total distance (for normalization)
+    float TotalDistance = DistToTopLeft + DistToTopRight + DistToBottomLeft + DistToBottomRight;
 
-	return Weights;
+    // Assign weights inversely proportional to amplified distance
+    Weights.Add(0, (0.5f - (DistToTopLeft / TotalDistance)) * 100.0f);    // Playstyle 1
+    Weights.Add(1, (0.5f - (DistToTopRight / TotalDistance)) * 100.0f);   // Playstyle 2
+    Weights.Add(2, (0.5f - (DistToBottomLeft / TotalDistance)) * 100.0f); // Playstyle 3
+    Weights.Add(3, (0.5f - (DistToBottomRight / TotalDistance)) * 100.0f);// Playstyle 4
+
+    // Normalize the weights to sum to 100
+    float TotalWeight = 0.0f;
+    for (const auto& Elem : Weights)
+    {
+        TotalWeight += Elem.Value;
+    }
+    for (auto& Elem : Weights)
+    {
+        Elem.Value = (Elem.Value / TotalWeight) * 100.0f;
+    }
+
+    // Log the weights
+    UE_LOG(LogTemp, Warning, TEXT("Playstyle Weights:"));
+    for (const auto& Elem : Weights)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Playstyle %d: %f"), Elem.Key, Elem.Value);
+    }
+
+    return Weights;
 }
 
 void ULevelGenTool::DeleteGrid()
@@ -229,8 +238,9 @@ void ULevelGenTool::NormalizeProbabilities(TMap<int32, float>& Probabilities)
 
 	for (auto& Elem : Probabilities)
 	{
-		Elem.Value = (Elem.Value / Total) * 100.0f; 
+		Elem.Value /= Total; 
 	}
+	
 }
 
 TArray<TSubclassOf<AActor>> ULevelGenTool::GetCellArrayForPlaystyle(int32 style)
@@ -268,13 +278,13 @@ int32 ULevelGenTool::SelectPlaystyleBasedOnWeight(const TMap<int32, float>& Weig
 		{
 			return Elem.Key;
 		}
+		
 	}
 
 	return 0; 
 }
 
-bool ULevelGenTool::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,
-	UDragDropOperation* InOperation)
+bool ULevelGenTool::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,UDragDropOperation* InOperation)
 {
 	Super::NativeOnDrop(InGeometry, InDragDropEvent, InOperation);
 
