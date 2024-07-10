@@ -3,6 +3,8 @@
 
 #include "LevelGenTool.h"
 
+#include "EngineUtils.h"
+
 ULevelGenTool::ULevelGenTool()
 {
 	
@@ -32,39 +34,46 @@ ULevelGenTool::~ULevelGenTool()
 
 TMap<int32, float> ULevelGenTool::GetPlaystyleWeightsFromGrid(const FVector2D& Point)
 {
-	TMap<int32, float> Weights;
+	 TMap<int32, float> Weights;
 
-    // Normalize coordinates
-    float Nx = (Point.X - 120.0f) / 406.0f;
-    float Ny = (Point.Y - 25.0f) / 392.0f;
+    // Normalize coordinates based on the new grid dimensions
+    float Nx = Point.X / 200.0f;
+    float Ny = Point.Y / 200.0f;
 
-    // Define corner points in normalized space
+    // Define the four corner points of the grid in normalized space
     FVector2D TopLeft(0, 0);
     FVector2D TopRight(1, 0);
     FVector2D BottomLeft(0, 1);
     FVector2D BottomRight(1, 1);
 
-    // Calculate distances to each corner
+    // Calculate distances from the point to each corner
     float DistToTopLeft = FVector2D::Distance(FVector2D(Nx, Ny), TopLeft);
     float DistToTopRight = FVector2D::Distance(FVector2D(Nx, Ny), TopRight);
     float DistToBottomLeft = FVector2D::Distance(FVector2D(Nx, Ny), BottomLeft);
     float DistToBottomRight = FVector2D::Distance(FVector2D(Nx, Ny), BottomRight);
 
-    // Amplify the influence of distances
-    float Power = 10.0f;  // Further increased power for steeper change
+    
+    float Power = 2.0f; 
     DistToTopLeft = FMath::Pow(DistToTopLeft, Power);
     DistToTopRight = FMath::Pow(DistToTopRight, Power);
     DistToBottomLeft = FMath::Pow(DistToBottomLeft, Power);
     DistToBottomRight = FMath::Pow(DistToBottomRight, Power);
 
-    // Calculate total distance (for normalization)
+  
     float TotalDistance = DistToTopLeft + DistToTopRight + DistToBottomLeft + DistToBottomRight;
 
-    // Assign weights inversely proportional to amplified distance
+    // Check for potential division by zero
+    if (TotalDistance == 0)
+    {
+        UE_LOG(LogTemp, Error, TEXT("Total distance is zero, which may cause division by zero error."));
+        return Weights;
+    }
+
+    // Assign weights inversely proportional to amplified distances
     Weights.Add(0, (0.5f - (DistToTopLeft / TotalDistance)) * 100.0f);    // Playstyle 1
-    Weights.Add(1, (0.5f - (DistToTopRight / TotalDistance)) * 100.0f);   // Playstyle 2
-    Weights.Add(2, (0.5f - (DistToBottomLeft / TotalDistance)) * 100.0f); // Playstyle 3
-    Weights.Add(3, (0.5f - (DistToBottomRight / TotalDistance)) * 100.0f);// Playstyle 4
+    Weights.Add(1, (0.5f  - (DistToTopRight / TotalDistance)) * 100.0f);   // Playstyle 2
+    Weights.Add(2, (0.5f  - (DistToBottomLeft / TotalDistance)) * 100.0f); // Playstyle 3
+    Weights.Add(3, (0.5f  - (DistToBottomRight / TotalDistance)) * 100.0f);// Playstyle 4
 
     // Normalize the weights to sum to 100
     float TotalWeight = 0.0f;
@@ -77,7 +86,7 @@ TMap<int32, float> ULevelGenTool::GetPlaystyleWeightsFromGrid(const FVector2D& P
         Elem.Value = (Elem.Value / TotalWeight) * 100.0f;
     }
 
-    // Log the weights
+    // Log the calculated weights for debugging
     UE_LOG(LogTemp, Warning, TEXT("Playstyle Weights:"));
     for (const auto& Elem : Weights)
     {
@@ -117,6 +126,7 @@ void ULevelGenTool::SpawnGrid()
 		SpawnSection(SelectedSection);
 		m_loc += 10;
 	}
+	
 }
 
 void ULevelGenTool::SpawnSection(int SectNum)
@@ -295,6 +305,8 @@ bool ULevelGenTool::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEve
 	
 	return Super::NativeOnDrop(InGeometry, InDragDropEvent, InOperation);
 }
+
+
 
 
 

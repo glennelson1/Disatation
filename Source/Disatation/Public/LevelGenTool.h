@@ -73,6 +73,6 @@ protected:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Vector")
 	FVector2D ReceivedVector;
-
+	
 	
 };
