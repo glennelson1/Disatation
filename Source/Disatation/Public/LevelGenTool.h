@@ -53,10 +53,11 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void SpawnGrid();
 	
+	bool Explorer, Killer;
+	int m_LengthLeft;
 	
-
 	
-	void SpawnSection(int SectNum, int32 PlayStyle);
+	void SpawnSection(int SectNum, int PlayStyle);
 
 	int32  SelectSectionBasedOnProbability(const TMap<int32, float>& Probabilities);
 	void DetermineProbability();
