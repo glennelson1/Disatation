@@ -56,7 +56,7 @@ protected:
 	
 
 	
-	void SpawnSection(int SectNum);
+	void SpawnSection(int SectNum, int32 PlayStyle);
 
 	int32  SelectSectionBasedOnProbability(const TMap<int32, float>& Probabilities);
 	void DetermineProbability();
