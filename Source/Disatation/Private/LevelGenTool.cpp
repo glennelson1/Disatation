@@ -123,18 +123,29 @@ void ULevelGenTool::SpawnGrid()
 		// Ensure probabilities are adjusted before each selection
 		DetermineProbability();
 		int32 SelectedSection = SelectSectionBasedOnProbability(SectionProbabilities);
-		SpawnSection(SelectedSection);
+		SpawnSection(SelectedSection, SelectedPlaystyle);
 		m_loc += 10;
 	}
 	
 }
 
-void ULevelGenTool::SpawnSection(int SectNum)
+void ULevelGenTool::SpawnSection(int SectNum, int32 SelectedPlaystyle)
 {
 	FVector SpawnLocation = FVector(m_loc  * 100, 0,100); 
 	AActor* NewCell;
-	NewCell = GetWorld()->SpawnActor<AActor>(Cell[SectNum], SpawnLocation, FRotator::ZeroRotator);
+	NewCell = GetWorld()->SpawnActor<AActor>(AchieversGen[SectNum], SpawnLocation, FRotator::ZeroRotator);
 	Cellref.Add(NewCell);
+	if(SectNum == 5 && SelectedPlaystyle == 1)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("1"));
+	}
+	if(SelectedPlaystyle == 3)
+	{
+		if(SectNum == 2 || SectNum == 3 ||SectNum == 4 ||SectNum == 6 )
+		{
+			UE_LOG(LogTemp, Warning, TEXT("2"));
+		}
+	}
 }
 
 int32 ULevelGenTool::SelectSectionBasedOnProbability(const TMap<int32, float>& Probabilities)
