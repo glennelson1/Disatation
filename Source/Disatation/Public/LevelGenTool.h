@@ -15,7 +15,11 @@ class DISATATION_API ULevelGenTool : public UEditorUtilityWidget
 	GENERATED_BODY()
 	ULevelGenTool();
 	~ULevelGenTool();
+
+
 protected:
+	
+
 	UPROPERTY(EditAnywhere, Category = "Grid")
 	TArray<TSubclassOf<AActor>> AchieversGen;
 	UPROPERTY(EditAnywhere, Category = "Grid")
@@ -31,7 +35,7 @@ protected:
 	TMap<int32, float> GetPlaystyleWeightsFromGrid(const FVector2D& Point);
 
 	
-
+	int32 GetDifficultyFromPlaystylePosition(const FVector2D& Point);
 
 	TMap<int32, float> AchieversProbabilities;
 	TMap<int32, float> ExplorersProbabilities;
@@ -70,7 +74,7 @@ protected:
 
 
 	
-	
+	void SaveIntToFile(int32 Value);
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Vector")
 	FVector2D ReceivedVector;

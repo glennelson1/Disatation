@@ -4,6 +4,8 @@
 #include "LevelGenTool.h"
 
 #include "EngineUtils.h"
+#include "Disatation/DisatationGameMode.h"
+#include "Kismet/GameplayStatics.h"
 
 ULevelGenTool::ULevelGenTool()
 {
@@ -33,6 +35,8 @@ ULevelGenTool::~ULevelGenTool()
 {
 	
 }
+
+
 
 TMap<int32, float> ULevelGenTool::GetPlaystyleWeightsFromGrid(const FVector2D& Point)
 {
@@ -98,6 +102,28 @@ TMap<int32, float> ULevelGenTool::GetPlaystyleWeightsFromGrid(const FVector2D& P
     return Weights;
 }
 
+int32 ULevelGenTool::GetDifficultyFromPlaystylePosition(const FVector2D& Point)
+{
+	
+	float Nx = Point.X / 200.0f;
+	float Ny = Point.Y / 200.0f;
+
+	
+	FVector2D PlaystyleTwoPosition(1, 0);
+
+	
+	float DistToPlaystyleTwo = FVector2D::Distance(FVector2D(Nx, Ny), PlaystyleTwoPosition);
+
+
+	float MaxDistance = FVector2D::Distance(FVector2D(0, 0), FVector2D(1, 1)); 
+	float NormalizedDistance = FMath::Clamp(DistToPlaystyleTwo / MaxDistance, 0.0f, 1.0f);
+
+
+	int32 DifficultyLevel = FMath::RoundToInt(NormalizedDistance * 19);
+
+	return DifficultyLevel;
+}
+
 void ULevelGenTool::DeleteGrid()
 {
 	for (AActor* actor : Cellref)
@@ -119,6 +145,12 @@ void ULevelGenTool::SpawnGrid()
 	// Use the GraphPosition to adjust the weights
 	PlaystyleWeights = GetPlaystyleWeightsFromGrid(ReceivedVector);
 
+	int DifficultyLevel = GetDifficultyFromPlaystylePosition(ReceivedVector);
+	UE_LOG(LogTemp, Warning, TEXT("Calculated Difficulty Level: %d"), DifficultyLevel);
+	
+	SaveIntToFile(DifficultyLevel);
+	
+	
 	for (int i = 0; i <= 20; i++)
 	{
 		// Select a playstyle based on the updated weights
@@ -145,7 +177,7 @@ void ULevelGenTool::SpawnSection(int SectNum, int SelectedPlaystyle)
 	Cellref.Add(NewCell);
 	if(SectNum == 2 || SectNum == 3 ||SectNum == 4 ||SectNum == 6)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("1"));
+		//UE_LOG(LogTemp, Warning, TEXT("1"));
 		if (SelectedPlaystyle == 1 && !Explorer)
 		{
 			for (int i = 0; i <= m_LengthLeft; i++)
@@ -344,6 +376,16 @@ bool ULevelGenTool::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEve
 
 	
 	return Super::NativeOnDrop(InGeometry, InDragDropEvent, InOperation);
+}
+
+void ULevelGenTool::SaveIntToFile(int32 Value)
+{
+	
+	FString FilePath = FPaths::ProjectDir() + TEXT("/Content/LevelSequences/GameDiffData.txt");
+	FString ValueAsString = FString::FromInt(Value);
+
+	// Overwrite the file with the new value
+	FFileHelper::SaveStringToFile(ValueAsString, *FilePath);
 }
 
 
