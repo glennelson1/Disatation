@@ -29,7 +29,6 @@ ULevelGenTool::ULevelGenTool()
 	
 }
 
-
 ULevelGenTool::~ULevelGenTool()
 {
 	
@@ -132,7 +131,7 @@ void ULevelGenTool::SpawnGrid()
 		SpawnSection(SelectedSection, SelectedPlaystyle);
 		m_loc += 10;
 		m_LengthLeft = 20 - i;
-		UE_LOG(LogTemp, Warning, TEXT("The integer value is: %d"), m_LengthLeft);
+		//UE_LOG(LogTemp, Warning, TEXT("The integer value is: %d"), m_LengthLeft);
 	}
 	
 }
@@ -144,24 +143,27 @@ void ULevelGenTool::SpawnSection(int SectNum, int SelectedPlaystyle)
 	AActor* NewCell;
 	NewCell = GetWorld()->SpawnActor<AActor>(AchieversGen[SectNum], SpawnLocation, FRotator::ZeroRotator);
 	Cellref.Add(NewCell);
-	if(SectNum == 5 && SelectedPlaystyle == 1 && !Explorer)
+	if(SectNum == 2 || SectNum == 3 ||SectNum == 4 ||SectNum == 6)
 	{
-		for (int i = 0; i <= m_LengthLeft; i++)
+		UE_LOG(LogTemp, Warning, TEXT("1"));
+		if (SelectedPlaystyle == 1 && !Explorer)
 		{
-			FVector Spawn = FVector(length  * 100, 0,900);
-			int32 RandomInt= FMath::RandRange(0, 6);
-			NewCell = GetWorld()->SpawnActor<AActor>(ExplorersGen[RandomInt], Spawn, FRotator::ZeroRotator);
-			Cellref.Add(NewCell);
-			Explorer = true;
-			length += 10;
+			for (int i = 0; i <= m_LengthLeft; i++)
+			{
+				FVector Spawn = FVector(length  * 100, 0,1000);
+				int32 RandomInt= FMath::RandRange(0, 6);
+				NewCell = GetWorld()->SpawnActor<AActor>(KillersGen[RandomInt], Spawn, FRotator::ZeroRotator);
+				Cellref.Add(NewCell);
+				Explorer = true;
+				length += 10;
+			}
 		}
-		//UE_LOG(LogTemp, Warning, TEXT("1"));
 	}
 	if(SelectedPlaystyle == 3 && !Killer)
 	{
 		for (int i = 0; i <= m_LengthLeft; i++)
 		{
-			if(SectNum == 2 || SectNum == 3 ||SectNum == 4 ||SectNum == 6 )
+			if(SectNum == 5)
 			{
 				FVector Spawn = FVector(length  * 100, 0,-500);
 				int32 RandomInt= FMath::RandRange(0, 6);
