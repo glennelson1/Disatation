@@ -23,6 +23,8 @@ public:
 protected:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	int m_Difficulty;
+
+	void ReadIntFromFile();
 };
 
 

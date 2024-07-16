@@ -29,8 +29,28 @@ void ADisatationGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	
+	ReadIntFromFile();
 }
+
+void ADisatationGameMode::ReadIntFromFile()
+{
+	FString FilePath = FPaths::ProjectDir() + TEXT("/Content/LevelSequences/GameDiffData.txt");
+	FString LoadedString;
+
+	// Check if the file exists and load the string
+	if (FFileHelper::LoadFileToString(LoadedString, *FilePath))
+	{
+		// Convert the string to an integer and set the class variable
+		m_Difficulty = FCString::Atoi(*LoadedString);
+		UE_LOG(LogTemp, Log, TEXT("Loaded value: %d"), m_Difficulty);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Failed to load value from file."));
+	}
+}
+
+
 
 
 

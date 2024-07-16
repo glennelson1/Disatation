@@ -148,7 +148,7 @@ void ULevelGenTool::SpawnGrid()
 	int DifficultyLevel = GetDifficultyFromPlaystylePosition(ReceivedVector);
 	UE_LOG(LogTemp, Warning, TEXT("Calculated Difficulty Level: %d"), DifficultyLevel);
 	
-	
+	SaveIntToFile(DifficultyLevel);
 	
 	
 	for (int i = 0; i <= 20; i++)
@@ -376,6 +376,16 @@ bool ULevelGenTool::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEve
 
 	
 	return Super::NativeOnDrop(InGeometry, InDragDropEvent, InOperation);
+}
+
+void ULevelGenTool::SaveIntToFile(int32 Value)
+{
+	
+	FString FilePath = FPaths::ProjectDir() + TEXT("/Content/LevelSequences/GameDiffData.txt");
+	FString ValueAsString = FString::FromInt(Value);
+
+	// Overwrite the file with the new value
+	FFileHelper::SaveStringToFile(ValueAsString, *FilePath);
 }
 
 

@@ -74,7 +74,7 @@ protected:
 
 
 	
-	
+	void SaveIntToFile(int32 Value);
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Vector")
 	FVector2D ReceivedVector;
