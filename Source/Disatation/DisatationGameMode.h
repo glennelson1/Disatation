@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "LevelGenTool.h"
 #include "GameFramework/GameModeBase.h"
 #include "DisatationGameMode.generated.h"
 
@@ -13,6 +14,15 @@ class ADisatationGameMode : public AGameModeBase
 
 public:
 	ADisatationGameMode();
+	
+	UFUNCTION(BlueprintCallable, Category="Game Mode")
+	
+
+
+	virtual void BeginPlay() override;
+protected:
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	int m_Difficulty;
 };
 
 
