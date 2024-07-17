@@ -133,8 +133,8 @@ void ULevelGenTool::DeleteGrid()
 	}
 	m_loc = 0;
 	Cellref.Empty();
-	Explorer = false;
-	Killer = false;
+	Explorer = 5;
+	Killer = 5;
 	m_LengthLeft = 0;
 }
 
@@ -142,7 +142,7 @@ void ULevelGenTool::SpawnGrid()
 {
 	
 	DeleteGrid();
-	// Use the GraphPosition to adjust the weights
+	
 	PlaystyleWeights = GetPlaystyleWeightsFromGrid(ReceivedVector);
 
 	int DifficultyLevel = GetDifficultyFromPlaystylePosition(ReceivedVector);
@@ -153,17 +153,19 @@ void ULevelGenTool::SpawnGrid()
 	
 	for (int i = 0; i <= 20; i++)
 	{
-		// Select a playstyle based on the updated weights
+	
 		int SelectedPlaystyle = SelectPlaystyleBasedOnWeight(PlaystyleWeights);
 		Cell = GetCellArrayForPlaystyle(SelectedPlaystyle);
 
-		// Ensure probabilities are adjusted before each selection
+		
 		DetermineProbability();
 		int32 SelectedSection = SelectSectionBasedOnProbability(SectionProbabilities);
 		SpawnSection(SelectedSection, SelectedPlaystyle);
 		m_loc += 10;
 		m_LengthLeft = 20 - i;
 		//UE_LOG(LogTemp, Warning, TEXT("The integer value is: %d"), m_LengthLeft);
+		Explorer += 1;
+		Killer += 1;
 	}
 	
 }
@@ -178,34 +180,38 @@ void ULevelGenTool::SpawnSection(int SectNum, int SelectedPlaystyle)
 	if(SectNum == 2 || SectNum == 3 ||SectNum == 4 ||SectNum == 6)
 	{
 		//UE_LOG(LogTemp, Warning, TEXT("1"));
-		if (SelectedPlaystyle == 1 && !Explorer)
+		if (SelectedPlaystyle == 1 && Explorer >= 5)
 		{
-			for (int i = 0; i <= m_LengthLeft; i++)
+			int32 RandomLength= FMath::RandRange(1, (m_LengthLeft - 1));
+			for (int i = 0; i <= RandomLength; i++)
 			{
 				FVector Spawn = FVector(length  * 100, 0,1000);
 				int32 RandomInt= FMath::RandRange(0, 6);
 				NewCell = GetWorld()->SpawnActor<AActor>(KillersGen[RandomInt], Spawn, FRotator::ZeroRotator);
 				Cellref.Add(NewCell);
-				Explorer = true;
+				Explorer = 0;
 				length += 10;
 			}
 		}
 	}
-	if(SelectedPlaystyle == 3 && !Killer)
+	if(SectNum == 5)
 	{
-		for (int i = 0; i <= m_LengthLeft; i++)
+		if(SelectedPlaystyle == 3 && Killer >= 5)
 		{
-			if(SectNum == 5)
+			int32 RandomLength= FMath::RandRange(1, (m_LengthLeft - 1));
+			for (int i = 0; i <= RandomLength; i++)
 			{
-				FVector Spawn = FVector(length  * 100, 0,-500);
-				int32 RandomInt= FMath::RandRange(0, 6);
-				NewCell = GetWorld()->SpawnActor<AActor>(KillersGen[RandomInt], Spawn, FRotator::ZeroRotator);
-				Cellref.Add(NewCell);
-				length += 10;
-				Killer = true;
-			}
+				if(SectNum == 5)
+				{
+					FVector Spawn = FVector(length  * 100, 0,-500);
+					int32 RandomInt= FMath::RandRange(0, 6);
+					NewCell = GetWorld()->SpawnActor<AActor>(KillersGen[RandomInt], Spawn, FRotator::ZeroRotator);
+					Cellref.Add(NewCell);
+					length += 10;
+					Killer = 0;
+				}
+			}//UE_LOG(LogTemp, Warning, TEXT("2"));
 		}
-		//UE_LOG(LogTemp, Warning, TEXT("2"));
 	}
 }
 
