@@ -57,7 +57,7 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void SpawnGrid();
 	
-	bool Explorer, Killer;
+	int Explorer, Killer;
 	int m_LengthLeft;
 	
 	

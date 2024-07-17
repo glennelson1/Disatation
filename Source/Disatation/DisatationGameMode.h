@@ -15,17 +15,31 @@ class ADisatationGameMode : public AGameModeBase
 public:
 	ADisatationGameMode();
 	
-	UFUNCTION(BlueprintCallable, Category="Game Mode")
-	
-
-
-	virtual void BeginPlay() override;
 protected:
+	virtual void BeginPlay() override;
+
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	int m_Difficulty;
 
 	void ReadIntFromFile();
+	
+	bool ShouldSpawnEnemy();
+	TSubclassOf<AActor> ChooseEnemyClass();
+	
+	void GetAllActorsOfClass(UWorld* World, TSubclassOf<AActor> ActorClass);
+	TArray<AActor*> FoundActors;
+
+	float ShouldSpawnProbability();
+
+	int CalculateTotalEnemiesToSpawn();
+
+	void SpawnEnemies();
+
+	UPROPERTY(EditAnywhere, Category = "Spawning")
+	TSubclassOf<AActor> EasyEnemyClass;
+	UPROPERTY(EditAnywhere, Category = "Spawning")
+	TSubclassOf<AActor> MediumEnemyClass;
+	UPROPERTY(EditAnywhere, Category = "Spawning")
+	TSubclassOf<AActor> HardEnemyClass;
 };
-
-
 
