@@ -136,6 +136,7 @@ void ULevelGenTool::DeleteGrid()
 	Explorer = 5;
 	Killer = 5;
 	m_LengthLeft = 0;
+	m_isStart = true;
 }
 
 void ULevelGenTool::SpawnGrid()
@@ -145,6 +146,8 @@ void ULevelGenTool::SpawnGrid()
 	
 	PlaystyleWeights = GetPlaystyleWeightsFromGrid(ReceivedVector);
 
+	
+	
 	int DifficultyLevel = GetDifficultyFromPlaystylePosition(ReceivedVector);
 	UE_LOG(LogTemp, Warning, TEXT("Calculated Difficulty Level: %d"), DifficultyLevel);
 	
@@ -155,62 +158,117 @@ void ULevelGenTool::SpawnGrid()
 	{
 	
 		int SelectedPlaystyle = SelectPlaystyleBasedOnWeight(PlaystyleWeights);
+
+		
 		Cell = GetCellArrayForPlaystyle(SelectedPlaystyle);
 
 		
 		DetermineProbability();
 		int32 SelectedSection = SelectSectionBasedOnProbability(SectionProbabilities);
 		SpawnSection(SelectedSection, SelectedPlaystyle);
+		
 		m_loc += 10;
 		m_LengthLeft = 20 - i;
 		//UE_LOG(LogTemp, Warning, TEXT("The integer value is: %d"), m_LengthLeft);
 		Explorer += 1;
 		Killer += 1;
+		m_isStart = false;
 	}
 	
 }
 
 void ULevelGenTool::SpawnSection(int SectNum, int SelectedPlaystyle)
 {
+	
+
+	
 	FVector SpawnLocation = FVector(m_loc  * 100, 0,100);
 	int length = m_loc;
 	AActor* NewCell;
-	NewCell = GetWorld()->SpawnActor<AActor>(AchieversGen[SectNum], SpawnLocation, FRotator::ZeroRotator);
-	Cellref.Add(NewCell);
-	if(SectNum == 2 || SectNum == 3 ||SectNum == 4 ||SectNum == 6)
+	/*NewCell = GetWorld()->SpawnActor<AActor>(AchieversGen[SectNum], SpawnLocation, FRotator::ZeroRotator);
+	Cellref.Add(NewCell);*/
+	
+	if(m_EndPos == (m_loc  * 100) && !m_isStart)
 	{
-		//UE_LOG(LogTemp, Warning, TEXT("1"));
-		if (SelectedPlaystyle == 1 && Explorer >= 5)
-		{
-			int32 RandomLength= FMath::RandRange(1, (m_LengthLeft - 1));
-			for (int i = 0; i <= RandomLength; i++)
-			{
-				FVector Spawn = FVector(length  * 100, 0,1000);
-				int32 RandomInt= FMath::RandRange(0, 6);
-				NewCell = GetWorld()->SpawnActor<AActor>(KillersGen[RandomInt], Spawn, FRotator::ZeroRotator);
-				Cellref.Add(NewCell);
-				Explorer = 0;
-				length += 10;
-			}
-		}
+		NewCell = GetWorld()->SpawnActor<AActor>(AchieversGen[5], SpawnLocation, FRotator::ZeroRotator);
+		Cellref.Add(NewCell);
 	}
-	if(SectNum == 5)
+	else
 	{
-		if(SelectedPlaystyle == 3 && Killer >= 5)
+		NewCell = GetWorld()->SpawnActor<AActor>(AchieversGen[SectNum], SpawnLocation, FRotator::ZeroRotator);
+		Cellref.Add(NewCell);
+	}
+	
+	
+	if(!m_isStart)
+	{
+		if(SectNum == 2 || SectNum == 3 ||SectNum == 4 ||SectNum == 6)// above
 		{
-			int32 RandomLength= FMath::RandRange(1, (m_LengthLeft - 1));
-			for (int i = 0; i <= RandomLength; i++)
+			//UE_LOG(LogTemp, Warning, TEXT("1"));
+			if (SelectedPlaystyle == 1 && Killer >= 5)
 			{
-				if(SectNum == 5)
+				int32 RandomLength= FMath::RandRange(1, (m_LengthLeft - 1));
+				for (int i = 0; i <= RandomLength; i++)
 				{
-					FVector Spawn = FVector(length  * 100, 0,-500);
+					FVector Spawn = FVector(length  * 100, 0,1000);
 					int32 RandomInt= FMath::RandRange(0, 6);
 					NewCell = GetWorld()->SpawnActor<AActor>(KillersGen[RandomInt], Spawn, FRotator::ZeroRotator);
 					Cellref.Add(NewCell);
-					length += 10;
 					Killer = 0;
+					length += 10;
 				}
-			}//UE_LOG(LogTemp, Warning, TEXT("2"));
+			}
+		}
+		if(SectNum == 5)//Below 
+		{
+			if(SelectedPlaystyle == 2 && Explorer >= 5)
+			{
+				int32 RandomLength= FMath::RandRange(1, (m_LengthLeft - 1));
+				for (int i = 0; i <= RandomLength; i++)
+				{
+					if(SectNum == 5)
+					{
+						if(i == 0 && i == length)
+						{
+							FVector Spawn = FVector(length  * 100 + 180, 0,-800);
+							NewCell = GetWorld()->SpawnActor<AActor>(ExplorersGen[7], Spawn, FRotator::ZeroRotator);
+							Cellref.Add(NewCell);
+							length += 10;
+							Explorer = 0;
+						}
+						else if(i==0)
+						{
+							FVector Spawn = FVector(length  * 100 + 180, 0,-800);
+							NewCell = GetWorld()->SpawnActor<AActor>(ExplorersGen[0], Spawn, FRotator::ZeroRotator);
+							Cellref.Add(NewCell);
+							length += 10;
+							Explorer = 0;
+						}
+						else if(i == RandomLength)
+						{
+							FVector Spawn = FVector(length  * 100+ 180, 0,-800);
+							NewCell = GetWorld()->SpawnActor<AActor>(ExplorersGen[6], Spawn, FRotator::ZeroRotator);
+							Cellref.Add(NewCell);
+							length += 10;
+							Explorer = 0;
+							m_EndPos = length  * 100;
+							UE_LOG(LogTemp, Warning, TEXT("End pos is: %d"), m_EndPos);
+						}
+						else
+						{
+							FVector Spawn = FVector(length  * 100 + 180, 0,-800);
+							int32 RandomInt= FMath::RandRange(1, 5);
+							NewCell = GetWorld()->SpawnActor<AActor>(ExplorersGen[RandomInt], Spawn, FRotator::ZeroRotator);
+							Cellref.Add(NewCell);
+							length += 10;
+							Explorer = 0;
+							
+						}
+						
+
+					}
+				}//UE_LOG(LogTemp, Warning, TEXT("2"));
+			}
 		}
 	}
 }
@@ -257,7 +315,7 @@ void ULevelGenTool::DetermineProbability()
 			
 	switch(m_PreviousSect)
 	{
-	case 0: // Last section was Empty
+	case 0: 
 		SectionProbabilities[1] += 5.0f; 
 		SectionProbabilities[2] += 5.0f;
 		SectionProbabilities[0] -= 10.0f;
@@ -265,7 +323,7 @@ void ULevelGenTool::DetermineProbability()
 		SectionProbabilities[5] += 10.0f;
 		SectionProbabilities[6] += 10.0f;
 		break;
-	case 1: // Last section was Pipes
+	case 1: 
 		SectionProbabilities[0] += 5.0f;
 		SectionProbabilities[1] -= 10.0f;
 		SectionProbabilities[5] += 5.0f;
@@ -273,7 +331,7 @@ void ULevelGenTool::DetermineProbability()
 		SectionProbabilities[3] += 20.0f;
 		SectionProbabilities[4] += 10.0f;
 		break;
-	case 2: // Last section was Stairs
+	case 2:
 		SectionProbabilities[3] += 10.0f; 
 		SectionProbabilities[5] -= 5.0f;
 		SectionProbabilities[3] += 5.0f;
@@ -281,7 +339,7 @@ void ULevelGenTool::DetermineProbability()
 		SectionProbabilities[4] += 10.0f;
 		SectionProbabilities[6] += 5.0f;
 		break;
-	case 3: // Last section was Single Block
+	case 3: 
 		SectionProbabilities[3] -= 10.0f; 
 		SectionProbabilities[4] += 5.0f; 
 		SectionProbabilities[0] += 5.0f;
@@ -289,14 +347,14 @@ void ULevelGenTool::DetermineProbability()
 		SectionProbabilities[4] += 5.0f;
 		SectionProbabilities[6] += 5.0f;
 		break;
-	case 4: // Last section was One Platform
-		SectionProbabilities[5] += 10.0f;
+	case 4: 
+		SectionProbabilities[5] += 5.0f;
 		SectionProbabilities[6] += 10.0f;
 		SectionProbabilities[1] -= 5.0f;
 		SectionProbabilities[4] -= 10.0f;
 		break;
-	case 5: // Last section was Small Platforms
-		SectionProbabilities[5] -= 10.0f; 
+	case 5: 
+		SectionProbabilities[5] -= 5.0f; 
 		SectionProbabilities[6] -= 10.0f;
 		SectionProbabilities[6] += 10.0f;
 		SectionProbabilities[4] += 10.0f;
@@ -372,6 +430,9 @@ int32 ULevelGenTool::SelectPlaystyleBasedOnWeight(const TMap<int32, float>& Weig
 	return 0; 
 }
 
+
+
+
 bool ULevelGenTool::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,UDragDropOperation* InOperation)
 {
 	Super::NativeOnDrop(InGeometry, InDragDropEvent, InOperation);
@@ -383,6 +444,8 @@ bool ULevelGenTool::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEve
 	
 	return Super::NativeOnDrop(InGeometry, InDragDropEvent, InOperation);
 }
+
+
 
 void ULevelGenTool::SaveIntToFile(int32 Value)
 {

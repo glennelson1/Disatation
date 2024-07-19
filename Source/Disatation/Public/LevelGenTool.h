@@ -35,6 +35,7 @@ protected:
 	TMap<int32, float> GetPlaystyleWeightsFromGrid(const FVector2D& Point);
 
 	
+	
 	int32 GetDifficultyFromPlaystylePosition(const FVector2D& Point);
 
 	TMap<int32, float> AchieversProbabilities;
@@ -44,6 +45,7 @@ protected:
 	TMap<int32, float> CurrentProbabilities;
 
 	
+	
 	int Playstyle;
 	TArray<TSubclassOf<AActor>> Cell;
 	
@@ -51,6 +53,7 @@ protected:
 	int m_PreviousSect;
 	TMap<int32, float> SectionProbabilities;
 	TMap<int32, float> PlaystyleWeights;
+	TMap<int32, float> BaseGen;
 	UFUNCTION(BlueprintCallable)
 	void DeleteGrid();
 	TArray<AActor*> Cellref;
@@ -59,8 +62,11 @@ protected:
 	
 	int Explorer, Killer;
 	int m_LengthLeft;
+
 	
-	
+	bool m_isStart;
+	bool m_isEnd;
+	int m_EndPos;
 	void SpawnSection(int SectNum, int PlayStyle);
 
 	int32  SelectSectionBasedOnProbability(const TMap<int32, float>& Probabilities);
@@ -72,6 +78,7 @@ protected:
 
 	virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;
 
+	
 
 	
 	void SaveIntToFile(int32 Value);
