@@ -27,90 +27,93 @@ void ADisatationGameMode::BeginPlay()
     ReadIntFromFile();
     GetAllActorsOfClass(GetWorld(), AEnemySpawn::StaticClass());
     
-    if(m_Difficulty == 0)
+    if (m_Difficulty == 0)
     {
         m_Difficulty = 10;
     }
-
     
     SpawnEnemies();
 }
 
-
-
-
-
 void ADisatationGameMode::SpawnEnemies()
 {
-    TArray<AActor*> AvailableSpawnPoints = FoundActors; // Copy the array of spawn points
+    TArray<AActor*> AvailableSpawnPoints = FoundActors; 
 
-    // Shuffle the array of spawn points to randomize their order
+  
     AvailableSpawnPoints.Sort([](const AActor& A, const AActor& B) {
         return FMath::RandBool();
     });
 
-    // Set to track which spawn points have been used in this spawning cycle
+    
     TSet<AActor*> SpawnedSpawnPoints;
 
-    // Distribute enemies evenly among spawn points
-    int NumSpawnedEnemies = 0;
     
-        for (AActor* SpawnPoint : AvailableSpawnPoints)
+    int NumSpawnedEnemies = 0;
+    int EasyEnemiesCount = 0;
+    int MediumEnemiesCount = 0;
+    int HardEnemiesCount = 0;
+
+    for (AActor* SpawnPoint : AvailableSpawnPoints)
+    {
+        if (!SpawnedSpawnPoints.Contains(SpawnPoint))
         {
-            if (!SpawnedSpawnPoints.Contains(SpawnPoint))
+            
+            float SpawnProbability = ShouldSpawnProbability();
+            if (FMath::FRand() <= SpawnProbability)
             {
-                // Calculate spawn probability for current difficulty
-                float SpawnProbability = ShouldSpawnProbability();
-                if (FMath::FRand() <= SpawnProbability)
+                FVector SpawnLocation = SpawnPoint->GetActorLocation();
+                FRotator SpawnRotation = SpawnPoint->GetActorRotation();
+                
+                TSubclassOf<AActor> EnemyClass = ChooseEnemyClass();
+                if (EnemyClass)
                 {
-                    FVector SpawnLocation = SpawnPoint->GetActorLocation();
-                    FRotator SpawnRotation = SpawnPoint->GetActorRotation();
-                    
-                    TSubclassOf<AActor> EnemyClass = ChooseEnemyClass();
-                    if (EnemyClass)
+                    AActor* SpawnedEnemy = GetWorld()->SpawnActor<AActor>(EnemyClass, SpawnLocation, SpawnRotation);
+                    if (SpawnedEnemy)
                     {
-                        AActor* SpawnedEnemy = GetWorld()->SpawnActor<AActor>(EnemyClass, SpawnLocation, SpawnRotation);
-                        if (SpawnedEnemy)
+                        NumSpawnedEnemies++;
+
+                        if (EnemyClass == EasyEnemyClass)
                         {
-                            UE_LOG(LogTemp, Log, TEXT("Spawned Enemy: %s at %s"), *SpawnedEnemy->GetName(), *SpawnLocation.ToString());
-                            NumSpawnedEnemies++;
+                            EasyEnemiesCount++;
                         }
+                        else if (EnemyClass == MediumEnemyClass)
+                        {
+                            MediumEnemiesCount++;
+                        }
+                        else if (EnemyClass == HardEnemyClass)
+                        {
+                            HardEnemiesCount++;
+                        }
+
+                        UE_LOG(LogTemp, Log, TEXT("Spawned Enemy: %s at %s"), *SpawnedEnemy->GetName(), *SpawnLocation.ToString());
                     }
-
-                    // Mark this spawn point as used in the current cycle
-                    SpawnedSpawnPoints.Add(SpawnPoint);
-
-                    
                 }
+
+                
+                SpawnedSpawnPoints.Add(SpawnPoint);
             }
-        
-
-        // Clear the set for the next spawning cycle
-        SpawnedSpawnPoints.Empty();
+        }
     }
-}
 
+    
+    SpawnedSpawnPoints.Empty();
+
+    // Log the summary of spawned enemies
+    UE_LOG(LogTemp, Log, TEXT("Difficulty: %d"), m_Difficulty);
+    UE_LOG(LogTemp, Log, TEXT("Total Enemies Spawned: %d"), NumSpawnedEnemies);
+    UE_LOG(LogTemp, Log, TEXT("Easy Enemies: %d, Medium Enemies: %d, Hard Enemies: %d"), EasyEnemiesCount, MediumEnemiesCount, HardEnemiesCount);
+}
 
 float ADisatationGameMode::ShouldSpawnProbability()
 {
-
-    // Define spawn probabilities for lowest and highest difficulties
-    float LowestDifficultyProbability = 0.05f;  // 1%
-    float HighestDifficultyProbability = 0.150f; // 10%
-
-    // Calculate the linearly interpolated spawn probability based on difficulty
+ 
+    float LowestDifficultyProbability = 0.10f;  
+    float HighestDifficultyProbability = 0.30f;
+    
     float DifficultyFactor = FMath::Lerp(LowestDifficultyProbability, HighestDifficultyProbability, (m_Difficulty - 1) / 20.0f);
-
-    // Ensure probability is between 0 and 1
     float Probability = FMath::Clamp(DifficultyFactor, 0.0f, 1.0f);
 
     return Probability;
-}
-
-bool ADisatationGameMode::ShouldSpawnEnemy()
-{
-    int SpawnChance = FMath::RandRange(1, 100);
-    return SpawnChance <= ShouldSpawnProbability() * 100; // Higher probability means higher spawn chance
 }
 
 TSubclassOf<AActor> ADisatationGameMode::ChooseEnemyClass()

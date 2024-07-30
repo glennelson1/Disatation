@@ -86,5 +86,8 @@ protected:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Vector")
 	FVector2D ReceivedVector;
 	
-	
+	int32 AchieversCount;
+	int32 KillersCount;
+	int32 ExplorersCount;
+	int32 SocializersCount;
 };

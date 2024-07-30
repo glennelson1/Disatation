@@ -107,7 +107,7 @@ int32 ULevelGenTool::GetDifficultyFromPlaystylePosition(const FVector2D& Point)
 	float Ny = Point.Y / 200.0f;
 
 	
-	FVector2D PlaystyleTwoPosition(1, 0);
+	FVector2D PlaystyleTwoPosition(0, 1);
 
 	
 	float DistToPlaystyleTwo = FVector2D::Distance(FVector2D(Nx, Ny), PlaystyleTwoPosition);
@@ -135,6 +135,10 @@ void ULevelGenTool::DeleteGrid()
 	Killer = 5;
 	m_LengthLeft = 0;
 	m_isStart = true;
+	AchieversCount = 0;
+	KillersCount = 0;
+	ExplorersCount = 0;
+	SocializersCount = 0;
 }
 
 void ULevelGenTool::SpawnGrid()
@@ -172,7 +176,12 @@ void ULevelGenTool::SpawnGrid()
 		Killer += 1;
 		m_isStart = false;
 	}
-	
+	// Log the number of sections spawned for each playstyle
+	UE_LOG(LogTemp, Warning, TEXT("Number of Sections Spawned:"));
+	UE_LOG(LogTemp, Warning, TEXT("Achievers: %d"), AchieversCount);
+	UE_LOG(LogTemp, Warning, TEXT("Killers: %d"), KillersCount);
+	UE_LOG(LogTemp, Warning, TEXT("Explorers: %d"), ExplorersCount);
+	UE_LOG(LogTemp, Warning, TEXT("Socializers: %d"), SocializersCount);
 }
 
 void ULevelGenTool::SpawnSection(int SectNum, int SelectedPlaystyle)
@@ -194,12 +203,13 @@ void ULevelGenTool::SpawnSection(int SectNum, int SelectedPlaystyle)
 			
 			NewCell = GetWorld()->SpawnActor<AActor>(AchieversGen[SectNum], SpawnLocation, FRotator::ZeroRotator);
 			Cellref.Add(NewCell);
+			AchieversCount++;
 			break;
 		case 1://KillersGen
 			
 			NewCell = GetWorld()->SpawnActor<AActor>(KillersGen[SectNum], SpawnLocation, FRotator::ZeroRotator);
 			Cellref.Add(NewCell);
-			
+			KillersCount++;
 			break;
 		case 2://ExplorersGen
 		
@@ -250,10 +260,12 @@ void ULevelGenTool::SpawnSection(int SectNum, int SelectedPlaystyle)
 				NewCell = GetWorld()->SpawnActor<AActor>(AchieversGen[SectNum], SpawnLocation, FRotator::ZeroRotator);
 				Cellref.Add(NewCell);
 			}
+			ExplorersCount++;  
 			break;
 		case 3://SocializersGen
 			NewCell = GetWorld()->SpawnActor<AActor>(SocializersGen[SectNum], SpawnLocation, FRotator::ZeroRotator);
 			Cellref.Add(NewCell);
+			SocializersCount++;  
 			break;
 		default://defaultGen
 			NewCell = GetWorld()->SpawnActor<AActor>(CellClasses[SectNum], SpawnLocation, FRotator::ZeroRotator);
