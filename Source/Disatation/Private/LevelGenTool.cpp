@@ -3,9 +3,7 @@
 
 #include "LevelGenTool.h"
 
-#include "EngineUtils.h"
-#include "Disatation/DisatationGameMode.h"
-#include "Kismet/GameplayStatics.h"
+
 
 ULevelGenTool::ULevelGenTool()
 {
@@ -28,11 +26,6 @@ ULevelGenTool::ULevelGenTool()
 		{2, 0.0f}, 
 		{3, 0.0f} };
 
-	
-}
-
-ULevelGenTool::~ULevelGenTool()
-{
 	
 }
 
@@ -69,7 +62,7 @@ TMap<int32, float> ULevelGenTool::GetPlaystyleWeightsFromGrid(const FVector2D& P
     // Check for potential division by zero
     if (TotalDistance == 0)
     {
-        UE_LOG(LogTemp, Error, TEXT("Total distance is zero, which may cause division by zero error."));
+        UE_LOG(LogTemp, Error, TEXT("Total distance is zero"));
         return Weights;
     }
 
@@ -177,11 +170,11 @@ void ULevelGenTool::SpawnGrid()
 		m_isStart = false;
 	}
 	// Log the number of sections spawned for each playstyle
-	UE_LOG(LogTemp, Warning, TEXT("Number of Sections Spawned:"));
-	UE_LOG(LogTemp, Warning, TEXT("Achievers: %d"), AchieversCount);
-	UE_LOG(LogTemp, Warning, TEXT("Killers: %d"), KillersCount);
-	UE_LOG(LogTemp, Warning, TEXT("Explorers: %d"), ExplorersCount);
-	UE_LOG(LogTemp, Warning, TEXT("Socializers: %d"), SocializersCount);
+	//UE_LOG(LogTemp, Warning, TEXT("Number of Sections Spawned:"));
+	//UE_LOG(LogTemp, Warning, TEXT("Achievers: %d"), AchieversCount);
+	//UE_LOG(LogTemp, Warning, TEXT("Killers: %d"), KillersCount);
+	//UE_LOG(LogTemp, Warning, TEXT("Explorers: %d"), ExplorersCount);
+	//UE_LOG(LogTemp, Warning, TEXT("Socializers: %d"), SocializersCount);
 }
 
 void ULevelGenTool::SpawnSection(int SectNum, int SelectedPlaystyle)
@@ -193,7 +186,7 @@ void ULevelGenTool::SpawnSection(int SectNum, int SelectedPlaystyle)
 	int32 RandomLength= FMath::RandRange(1, (m_LengthLeft - 3));
 	/*NewCell = GetWorld()->SpawnActor<AActor>(AchieversGen[SectNum], SpawnLocation, FRotator::ZeroRotator);
 	Cellref.Add(NewCell);*/
-	TArray<TSubclassOf<AActor>>* ActorArray = nullptr;
+
 	
 	if(!m_isStart)
 	{
@@ -312,13 +305,13 @@ int32 ULevelGenTool::SelectSectionBasedOnProbability(const TMap<int32, float>& P
 void ULevelGenTool::DetermineProbability()
 {
 	SectionProbabilities = {
-		{0, 10.0f}, // Empty
-		{1, 10.0f}, // Pipes
-		{2, 10.0f}, // Stairs
-		{3, 10.0f}, // Single Block
-		{4, 10.0f}, // One Platform
-		{5, 0.0f}, // Small Platforms
-		{6, 0.0f}  // Large Platforms
+		{0, 10.0f}, // Section 1
+		{1, 10.0f}, // Section 2
+		{2, 10.0f}, // Section 3
+		{3, 10.0f}, // Section 4
+		{4, 10.0f}, // Section 5
+		{5, 0.0f}, // Section 6
+		{6, 0.0f}  // Section 7
 	};
 	
 			
@@ -369,7 +362,7 @@ void ULevelGenTool::DetermineProbability()
 		SectionProbabilities[4] += 10.0f;
 		
 		break;
-	case 6: // Last section was Large Platforms
+	case 6: 
 		SectionProbabilities[5] -= 10.0f; 
 		SectionProbabilities[6] -= 10.0f;
 		SectionProbabilities[2] += 4.0f; 
@@ -444,7 +437,7 @@ bool ULevelGenTool::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEve
 {
 	Super::NativeOnDrop(InGeometry, InDragDropEvent, InOperation);
 
-	const FVector2D DragWindowOffset = InGeometry.AbsoluteToLocal(InDragDropEvent.GetScreenSpacePosition());
+	//const FVector2D DragWindowOffset = InGeometry.AbsoluteToLocal(InDragDropEvent.GetScreenSpacePosition());
 	//const FVector2D DragWindowOffsetResult = DragWindowOffset - DragWidgetResult->DragOffset;
 
 

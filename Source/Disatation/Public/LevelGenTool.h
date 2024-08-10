@@ -14,7 +14,7 @@ class DISATATION_API ULevelGenTool : public UEditorUtilityWidget
 {
 	GENERATED_BODY()
 	ULevelGenTool();
-	~ULevelGenTool();
+
 
 
 protected:
